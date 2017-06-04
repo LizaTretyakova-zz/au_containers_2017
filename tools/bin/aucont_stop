@@ -1,0 +1,4 @@
+#!/bin/bash
+
+../src/aucont_stop.py
+

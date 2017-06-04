@@ -1,0 +1,4 @@
+#!/bin/bash
+
+../src/aucont_start.py
+
