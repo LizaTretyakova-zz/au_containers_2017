@@ -1,0 +1,12 @@
+#!/bin/bash
+
+ROOTFS_DIR=/test/rootfs
+IMAGES_DIR=/test/images
+
+for var in "$@"
+do
+    echo "$var"
+done
+
+# mkdir IMAGES_DIR
+# (cd $ROOTFS_DIR; tar cf - .) | (cd $IMAGES_DIR; tar xf -)

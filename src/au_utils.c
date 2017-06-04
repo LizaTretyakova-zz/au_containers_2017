@@ -28,17 +28,16 @@ void usage(char **argv) {
     fprintf(stderr, "Usage: %s -u -1 -m . -c /bin/sh ~\n", argv[0]);
 }
 
-void clear_resources(struct child_config* config, char* stack) {
+void clear_resources(struct child_config* config, char* stack, int sockets[2]) {
     free_resources(config);
     free(stack);
-    cleanup();
+    cleanup(sockets);
 }
 
 void finish_child(int *err, pid_t child_pid) {
     int child_status = 0;
     waitpid(child_pid, &child_status, 0);
     *err |= WEXITSTATUS(child_status);
-    clear_resources();
 }
 
 void kill_and_finish_child(int* err, pid_t child_pid) {
