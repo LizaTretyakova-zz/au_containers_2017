@@ -10,17 +10,17 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-void cleanup(int sockets[2]) {
-    if (sockets[0]) {
-        close(sockets[0]);
+void cleanup(int pipe_fds[2]) {
+    if (pipe_fds[0]) {
+        close(pipe_fds[0]);
     }
-    if (sockets[1]) {
-        close(sockets[1]);
+    if (pipe_fds[1]) {
+        close(pipe_fds[1]);
     }
 }
 
-int error(int sockets[2]) {
-    cleanup(sockets);
+int error(int pipe_fds[2]) {
+    cleanup(pipe_fds);
     return 1;
 }
 
@@ -28,10 +28,9 @@ void usage(char **argv) {
     fprintf(stderr, "Usage: %s -u -1 -m . -c /bin/sh ~\n", argv[0]);
 }
 
-void clear_resources(struct child_config* config, char* stack, int sockets[2]) {
-    free_resources(config);
+void clear_resources(char* stack, int pipe_fds[2]) {
     free(stack);
-    cleanup(sockets);
+    cleanup(pipe_fds);
 }
 
 void finish_child(int *err, pid_t child_pid) {
@@ -45,29 +44,4 @@ void kill_and_finish_child(int* err, pid_t child_pid) {
         kill(child_pid, SIGKILL);
     }
     finish_child(err, child_pid);
-}
-
-int parse_parameters(int argc, char **argv, struct child_config* config) {
-    int option = 0;
-    int last_optind = 0;
-    while ((option = getopt(argc, argv, "c:m:u:"))) {
-        if(option == 'c') {
-            config->argc = argc - last_optind - 1;
-            config->argv = &argv[argc - config->argc];
-            break;
-        } else if(option == 'm') {
-            config->mount_dir = optarg;
-        } else if(option == 'u') {
-            if (sscanf(optarg, "%d", &config->uid) != 1) {
-                fprintf(stderr, "badly-formatted uid: %s\n", optarg);
-                usage(argv);
-                return 0;
-            }
-        } else {
-            usage(argv);
-            return 0;
-        }
-        last_optind = optind;
-    }
-    return 1;
 }

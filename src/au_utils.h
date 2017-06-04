@@ -6,10 +6,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-void cleanup(int sockets[2]);
-int error(int sockets[2]);
+void cleanup(int pipe_fds[2]);
+int error(int pipe_fds[2]);
 void usage(char **argv);
-void clear_resources(struct child_config* config, char* stack, int sockets[2]);
+void clear_resources(char* stack, int pipe_fds[2]);
 void finish_child(int *err, pid_t child_pid);
 void kill_and_finish_child(int* err, pid_t child_pid);
 

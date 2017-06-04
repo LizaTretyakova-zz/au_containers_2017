@@ -1,11 +1,16 @@
+#include "au_child.h"
 #include "au_cont.h"
 
+#include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/mount.h>
 #include <sys/syscall.h>
+#include <sys/types.h>
 #include <unistd.h>
 
-static const int PATH_MAX = 32;
+#define PATH_MAX 32
 
 int map_id(pid_t child_pid, unsigned int id, const char* type) {
     int uid_map = 0;
@@ -116,6 +121,15 @@ int mounts(const char* new_root_path) {
 int child(void *arg)
 {
     struct child_config *config = arg;
+    char msg[32];
+    if(read(config->fd, msg, sizeof(PROCEED)) < 0) {
+        perror("error reading from pipe");
+        return -1;
+    }
+    if(!strcmp(PROCEED, msg)) {
+        perror("child received incorrect message");
+        exit(EXIT_FAILURE);
+    }
 
     // to rule our little cruel word...
     setuid(0);
@@ -124,19 +138,23 @@ int child(void *arg)
     setegid(0);
 
     if(sethostname(config->hostname, strlen(config->hostname)) < 0) {
-
+        perror("Child couldn't set hostname");
+        exit(EXIT_FAILURE);
     }
     if(mounts(config->mount_dir) < 0) {
         return -1;
     }
 
     if(config->daemonize == 1) {
-        daemonize();
+        if(daemonize() < 0) {
+            exit(EXIT_FAILURE);
+        }
     }
 
     if (execve(config->argv[0], config->argv, NULL)) {
         fprintf(stderr, "execve failed! %m.\n");
-        return -1;
+        exit(EXIT_FAILURE);
     }
+
     return 0;
 }
