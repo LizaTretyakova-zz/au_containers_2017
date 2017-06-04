@@ -36,7 +36,7 @@ def setup_workplace(img_path):
 def main(argv):
     print(argv[0], file=sys.stderr)
 
-    c_cmd = ["./aucont_start.elf"]
+    c_cmd = ["../bin/au_cont"]
     net_idx = -1
     cpu_idx = -1
 
@@ -85,3 +85,7 @@ def main(argv):
         setup_cpu(argv[cpu_idx], cont_pid)
 
     print(cont_pid, sys.stdout)
+
+
+if __name__ == '__main__':
+    main(sys.argv)
