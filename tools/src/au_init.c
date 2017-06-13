@@ -4,10 +4,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-int init_user(void) {
+int set_ids(void) {
+    fprintf(stderr, "%d %d %d %d\n",
+            getuid(), geteuid(), getgid(), getegid());
     if(setuid(0)) {
         perror("setuid");
-        return -1
+        return -1;
     }
     if(seteuid(0)) {
         perror("seteuid");

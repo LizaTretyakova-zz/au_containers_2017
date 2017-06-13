@@ -1,7 +1,4 @@
 #!/bin/bash
 
-#../src/aucont_stop.py
-echo 'aucont stop'
-echo $@
-python3 /test/aucont/src/aucont_stop.py $@
-
+kill $1
+rm -rd /test/images/$1

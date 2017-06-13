@@ -1,5 +1,4 @@
 #!/bin/bash
 
-#../src/aucont_list.py
-python3 /test/aucont/src/aucont_list.py
+ls /test/images
 

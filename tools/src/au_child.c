@@ -22,7 +22,7 @@ int map_id(pid_t child_pid, unsigned int id, const char* type) {
         return -1;
     }
 
-    fprintf(stderr, "writing %s...", path);
+    fprintf(stderr, "writing %s...\n", path);
     if ((uid_map = open(path, O_WRONLY)) == -1) {
         perror(type);
         return -1;
@@ -126,7 +126,7 @@ int child(void *arg)
         perror("error reading from pipe");
         return -1;
     }
-    if(!strcmp(PROCEED, msg)) {
+    if(strcmp(PROCEED, msg)) {
         perror("child received incorrect message");
         exit(EXIT_FAILURE);
     }
