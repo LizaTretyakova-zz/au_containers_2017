@@ -8,7 +8,7 @@
 sources/scripts/.gitignore
 sources/scripts/.idea/
 sources/scripts/build.sh
-tools/bin
+tools/bin/init
 tools/src/aucont_start
 tools/src/aucont_start.c
 tools/src/draft.c
