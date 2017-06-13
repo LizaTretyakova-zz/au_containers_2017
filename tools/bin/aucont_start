@@ -1,4 +1,5 @@
 #!/bin/bash
 
-../src/aucont_start.py
+#../src/aucont_start.py
+python3 /test/aucont/src/aucont_start.py $@
 

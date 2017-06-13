@@ -5,6 +5,9 @@ import ipaddress
 import uuid
 
 
+tag = "[aucont_start.py]"
+
+
 def setup_net(ip, cont_pid):
     host_ip = str(int(ipaddress.ip_address(ip)) + 1)
     host_veth_name = "veth" + str(cont_pid)
@@ -42,6 +45,7 @@ def main(argv):
 
     i = 1
     while argv[i][0] == "-":
+        print("{0} process argv[{1}]={2}".format(tag, i, argv[i]), file=sys.stderr)
         if argv[i] == "-d":
             c_cmd.append("1")
             i += 1
@@ -56,6 +60,7 @@ def main(argv):
     img_path = argv[i]
 
     # setup workplace
+    print("{0} setup workplace".format(tag), file=sys.stderr)
     archive_path = "/test/images/"
     unique_name = str(uuid.uuid4())
     dest_path = "/test/containers/" + unique_name + "/"
@@ -67,6 +72,7 @@ def main(argv):
     subprocess.call("(cd {0}; tar cf - .) | (cd {1}; tar xf -)".format(img_path, dest_path))
 
     # create namespaces, obtain PID
+    print("{0} create namespaces, obtain PID".format(tag), file=sys.stderr)
     output = subprocess.check_output(c_cmd, stderr=subprocess.STDOUT)
     cont_pid = output.decode('UTF-8')[:-1]
     str_pid = str(cont_pid)
@@ -80,12 +86,15 @@ def main(argv):
 
     # setup network and/or resources if needed
     if net_idx != -1:
+        print("{0} setup network".format(tag), file=sys.stderr)
         setup_net(argv[net_idx], cont_pid)
     if cpu_idx != -1:
+        print("{0} setup resources".format(tag), file=sys.stderr)
         setup_cpu(argv[cpu_idx], cont_pid)
 
     print(cont_pid, sys.stdout)
 
 
 if __name__ == '__main__':
+    print(tag, file=sys.stderr)
     main(sys.argv)
