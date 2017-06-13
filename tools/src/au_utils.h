@@ -12,5 +12,7 @@ void usage(char **argv);
 void clear_resources(char* stack, int pipe_fds[2]);
 void finish_child(int *err, pid_t child_pid);
 void kill_and_finish_child(int* err, pid_t child_pid);
+void fill_empty_config(struct child_config* config);
+void process_arguments(struct child_config* config, int argc, char** argv);
 
 #endif
