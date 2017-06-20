@@ -12,6 +12,18 @@
 
 #define PATH_MAX 32
 
+int print_stats() {
+    char tmp[64];
+    if(gethostname(tmp, 64)) {
+        perror("gethostname");
+        return -1;
+    }
+    fprintf(stderr, "[AU_CHILD] hostname is set to: %s\n", tmp);
+    fprintf(stderr, "[AU_CHILD] uid %d\n[AU_CHILD] euid %d\n[AU_CHILD] gid %d\n[AU_CHILD] egid %d\n",
+            getuid(), geteuid(), getgid(), getegid());
+    return 0;
+}
+
 int map_id(pid_t child_pid, unsigned int id, const char* type) {
     int uid_map = 0;
     char path[PATH_MAX] = {0};
@@ -74,14 +86,25 @@ int pivot_root(const char* new_root_path, const char* old_root_path) {
 }
 
 int mounts(const char* new_root_path) {
-    int len = strlen(new_root_path) + 3 + 1;
+    int len = strlen(new_root_path) + 3 + 1 + 1;
     char old_root_path[len];
     if(sprintf(old_root_path, "%s/old", new_root_path) < 0) {
         perror("error printing old_root_path");
         return -1;
     }
+    fprintf(stderr, "Meow!\n");
+    sleep(10000);
+    if(system("id; ls -l /test/scripts/../rootfs/ 1>&2")) {
+        perror("system");
+        return -1;
+    }
+    int r, e, s;
+    getresuid(&r, &e, &s);
+    fprintf(stderr, "getresuid: %d %d %d\n", r, e, s);
     if(mkdir(old_root_path, 0777) < 0) {
         perror("mkdir couldn't create old root dir");
+        fprintf(stderr, "old_root_path: %s\n%d %d %d %d\n",
+                old_root_path, getuid(), geteuid(), getgid(), getegid());
         return -1;
     }
     if(mount(new_root_path, new_root_path, "bind", MS_BIND | MS_REC, NULL)) {
@@ -141,6 +164,11 @@ int child(void *arg)
         perror("Child couldn't set hostname");
         exit(EXIT_FAILURE);
     }
+
+    if(print_stats()) {
+        return -1;
+    }
+
     if(mounts(config->mount_dir) < 0) {
         return -1;
     }

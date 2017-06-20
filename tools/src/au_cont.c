@@ -80,11 +80,23 @@ int main (int argc, char **argv)
     // setup workplace
     char child_pid_str[32];
     sprintf(child_pid_str, "%d", child_pid);
-    execv("/test/aucont/src/au_setup_workspace.py",
-          (char* []){"/test/aucont/src/au_setup_workspace.py",
-            config.mount_dir,
-            child_pid_str,
-            NULL});
+    char script_cmd[256];
+    sprintf(script_cmd, "%s %s %d", "/test/aucont/src/au_setup_workplace.py", config.mount_dir, child_pid);
+    fprintf(stderr, "[AU_CONT] %d %d %d %d\n",
+            getuid(), geteuid(), getgid(), getegid());
+    fprintf(stderr, "[AU_CONT] script_cmd: %s\n", script_cmd);
+    //    if(system("/test/aucont/src/au_setup_workspace.py",
+//          (char* []){"/test/aucont/src/au_setup_workspace.py",
+//            config.mount_dir,
+//            child_pid_str,
+//            NULL})) {
+    if(system(script_cmd)) {
+        perror("[AU_CONT] system");
+        err = 1;
+        kill_and_finish_child(&err, child_pid);
+        clear_resources(stack, pipe_fds);
+        return err;
+    }
     strcpy(config.mount_dir, "/test/images/");
     strcat(config.mount_dir, child_pid_str);
     strcat(config.mount_dir, "/");

@@ -23,5 +23,7 @@ int set_ids(void) {
         perror("setegid");
         return -1;
     }
+    fprintf(stderr, "%d %d %d %d\n",
+            getuid(), geteuid(), getgid(), getegid());
     return 0;
 }
