@@ -1,4 +1,12 @@
 #!/bin/bash
 
-kill $1
-rm -rd /test/images/$1
+if [ $# -eq 2 ]
+  then
+    echo "[AUCONT_STOP] signal $2 provided"
+    sudo kill -s $2 -- $1
+  else
+    echo "[AUCONT_STOP] no signal provided"
+    sudo kill $1
+fi
+
+sudo rm -rd /test/images/$1

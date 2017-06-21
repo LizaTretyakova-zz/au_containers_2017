@@ -50,9 +50,7 @@ int map_id(pid_t child_pid, unsigned int id, const char* type) {
     return 0;
 }
 
-int handle_child_uid_map (pid_t child_pid) {
-    uid_t host_uid = getuid();
-    gid_t host_gid = getgid();
+int handle_child_uid_map (pid_t child_pid, uid_t host_uid, gid_t host_gid) {
     int res;
 
     res = map_id(child_pid, host_uid, "uid_map");
@@ -74,10 +72,12 @@ int daemonize() {
         perror("failed setsid");
         return -1;
     }
+    fprintf(stderr, "[AU_CHILD] daemonize sid=%ud\n", sid);
     if(chdir("/") < 0) {
         perror("could not chdir in daemonize");
         return -1;
     }
+    fprintf(stderr, "[AU_CHILD] daemonize changed root\n", sid);
     return 0;
 }
 
@@ -93,14 +93,7 @@ int mounts(const char* new_root_path) {
         return -1;
     }
     fprintf(stderr, "Meow!\n");
-    sleep(10000);
-    if(system("id; ls -l /test/scripts/../rootfs/ 1>&2")) {
-        perror("system");
-        return -1;
-    }
-    int r, e, s;
-    getresuid(&r, &e, &s);
-    fprintf(stderr, "getresuid: %d %d %d\n", r, e, s);
+
     if(mkdir(old_root_path, 0777) < 0) {
         perror("mkdir couldn't create old root dir");
         fprintf(stderr, "old_root_path: %s\n%d %d %d %d\n",
@@ -173,6 +166,7 @@ int child(void *arg)
         return -1;
     }
 
+    fprintf(stderr, "[AU_CHILD] config->daemonize=%d\n", config->daemonize);
     if(config->daemonize == 1) {
         if(daemonize() < 0) {
             exit(EXIT_FAILURE);

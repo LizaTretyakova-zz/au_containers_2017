@@ -1,9 +1,10 @@
 #!/usr/bin
 
 import sys
+import os
+import subprocess
 
 tag = "meow workplace"
-print(tag, file=sys.stderr)
 
 def main(argv):
     # setup workplace
@@ -11,9 +12,8 @@ def main(argv):
     dest_path = "/test/images/" + argv[2] + "/"
 
     os.makedirs(dest_path, exist_ok=False)
-    subprocess.call("(cd {0}; tar cf - .) | (cd {1}; tar xf -)".format(argv[1], dest_path))
+    subprocess.call("(cd {0}; tar cf - .) | (cd {1}; tar xf -)".format(argv[1], dest_path), shell=True)
 
 
 if __name__ == '__main__':
-    print(tag, file=sys.stderr)
     main(sys.argv)

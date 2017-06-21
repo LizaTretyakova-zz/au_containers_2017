@@ -71,25 +71,30 @@ int main (int argc, char **argv)
     }
     pipe_fds[0] = 0;
 
-    // set all the proper id's
+    // set all the proper id's and keep the initial ones
+    uid_t host_uid = getuid();
+    gid_t host_gid = getgid();
     if(set_ids()) {
         clear_resources(stack, pipe_fds);
         return 1;
+    }
+
+    // UID/GID mappings
+    if (handle_child_uid_map(child_pid, host_uid, host_gid)) {
+        err = 1;
+        kill_and_finish_child(&err, child_pid);
+        clear_resources(stack, pipe_fds);
+        return err;
     }
 
     // setup workplace
     char child_pid_str[32];
     sprintf(child_pid_str, "%d", child_pid);
     char script_cmd[256];
-    sprintf(script_cmd, "%s %s %d", "/test/aucont/src/au_setup_workplace.py", config.mount_dir, child_pid);
+    sprintf(script_cmd, "sudo python3 %s %s %d", "/test/aucont/src/au_setup_workplace.py", config.mount_dir, child_pid);
     fprintf(stderr, "[AU_CONT] %d %d %d %d\n",
             getuid(), geteuid(), getgid(), getegid());
     fprintf(stderr, "[AU_CONT] script_cmd: %s\n", script_cmd);
-    //    if(system("/test/aucont/src/au_setup_workspace.py",
-//          (char* []){"/test/aucont/src/au_setup_workspace.py",
-//            config.mount_dir,
-//            child_pid_str,
-//            NULL})) {
     if(system(script_cmd)) {
         perror("[AU_CONT] system");
         err = 1;
@@ -100,14 +105,6 @@ int main (int argc, char **argv)
     strcpy(config.mount_dir, "/test/images/");
     strcat(config.mount_dir, child_pid_str);
     strcat(config.mount_dir, "/");
-
-    // UID/GID mappings
-    if (handle_child_uid_map(child_pid)) {
-        err = 1;
-        kill_and_finish_child(&err, child_pid);
-        clear_resources(stack, pipe_fds);
-        return err;
-    }
 
     // cgroups and CPU usage
     if(strlen(config.cpu)) {
