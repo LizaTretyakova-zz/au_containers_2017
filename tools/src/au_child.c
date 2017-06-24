@@ -11,6 +11,8 @@
 #include <unistd.h>
 
 #define PATH_MAX 32
+#define EXIT_SUCCESS 0
+#define EXIT_FAILURE 1
 
 int print_stats() {
     char tmp[64];
@@ -66,19 +68,52 @@ int handle_child_uid_map (pid_t child_pid, uid_t host_uid, gid_t host_gid) {
 }
 
 int daemonize() {
+    pid_t sid;
     int fd;
-    pid_t sid = setsid();
-    if(sid == (pid_t)-1) {
+
+    /* already a daemon */
+    if ( getppid() == 1 ) {
+        fprintf(stderr, "[AU_CHILD] Already a daemon\n");
+        return;
+    }
+
+    /* At this point we are executing as the child process */
+
+    /* Create a new SID for the child process */
+    sid = setsid();
+    if (sid < 0) {
         perror("failed setsid");
-        return -1;
+        exit(EXIT_FAILURE);
     }
-    fprintf(stderr, "[AU_CHILD] daemonize sid=%ud\n", sid);
-    if(chdir("/") < 0) {
-        perror("could not chdir in daemonize");
-        return -1;
+
+    fprintf(stderr, "[AU_CHILD] Set sid=%u\n", sid);
+
+    /* Change the current working directory. */
+    if ((chdir("/")) < 0) {
+        perror("failed chdir");
+        exit(EXIT_FAILURE);
     }
-    fprintf(stderr, "[AU_CHILD] daemonize changed root\n", sid);
-    return 0;
+
+    fprintf(stderr, "[AU_CHILD] Changed dir\n");
+
+    fd = open("/dev/null",O_RDWR, 0);
+    fprintf(stderr, "[AU_CHILD] Hopefully, it's the last message from here: fd=%d\n", fd);
+    if (fd != -1) {
+        dup2(fd, STDIN_FILENO);
+        dup2(fd, STDOUT_FILENO);
+        dup2(fd, STDERR_FILENO);
+
+        if (fd > 2) {
+            close (fd);
+        }
+
+        fprintf(stderr, "[AU_CHILD] Redirected I/O to /dev/null");
+    }
+
+    fprintf(stderr, "[AU_CHILD] Finishing daemonization\n");
+
+    /*resetting File Creation Mask */
+    umask(027);
 }
 
 int pivot_root(const char* new_root_path, const char* old_root_path) {
